@@ -1,58 +1,85 @@
-import React, { useState } from "react";
+import React, { Component } from "react";
 import PropTypes from "prop-types";
+import "./Style.css";
 
-function ContactForm({ onSubmit }) {
-  const [name, setName] = useState("");
-  const [number, setNumber] = useState("");
+class ContactForm extends Component {
+  state = {
+    name: "",
+    number: "",
+    error: "",
+  };
 
-  const handleChange = (e) => {
+  // Obsługa zmiany wartości w polach formularza
+  handleChange = (e) => {
     const { name, value } = e.target;
-    if (name === "name") {
-      setName(value);
-    } else if (name === "number") {
-      setNumber(value);
-    }
+    this.setState({ [name]: value });
   };
 
-  const handleSubmit = (e) => {
+  // Obsługa przesłania formularza
+  handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(name, number);
-    setName("");
-    setNumber("");
+    const { name, number } = this.state;
+
+    // Walidacja pola 'name'
+    const namePattern = /^[a-zA-Z]+\s[a-zA-Z]+$/;
+    if (!namePattern.test(name)) {
+      this.setState({
+        error: "Imię musi zawierać imię i nazwisko oddzielone spacją.",
+      });
+      return;
+    }
+
+    // Walidacja pola 'number'
+    const phoneNumberPattern = /^[0-9+\-()\s]*$/;
+    if (!phoneNumberPattern.test(number)) {
+      this.setState({
+        error: "Numer może zawierać tylko cyfry, spacje, myślniki i nawiasy.",
+      });
+      return;
+    }
+
+    // Wyczyszczenie błędu i przesłanie formularza
+    this.setState({ error: "" });
+    this.props.onSubmit({ name, number });
+    this.setState({ name: "", number: "" });
   };
 
-  return (
-    <form onSubmit={handleSubmit}>
-      <label>
-        Name
-        <input
-          type="text"
-          name="name"
-          value={name}
-          pattern="^[a-zA-Z '\-]+$"
-          title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
-          required
-          onChange={handleChange}
-        />
-      </label>
-      <label>
-        Number
-        <input
-          type="tel"
-          name="number"
-          value={number}
-          pattern="\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
-          title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
-          required
-          onChange={handleChange}
-        />
-      </label>
-      <button type="submit">Add contact</button>
-    </form>
-  );
+  render() {
+    const { name, number, error } = this.state;
+
+    return (
+      <div className="ContactForm">
+        <form className="ContactForm-form" onSubmit={this.handleSubmit}>
+          <label>
+            Name
+            <input
+              type="text"
+              name="name"
+              value={name}
+              onChange={this.handleChange}
+              required
+            />
+          </label>
+          <label>
+            Number
+            <input
+              type="text"
+              name="number"
+              value={number}
+              onChange={this.handleChange}
+              required
+            />
+          </label>
+          {error && <p className="error">{error}</p>}
+          <button type="submit">Add contacts</button>
+        </form>
+      </div>
+    );
+  }
 }
 
 ContactForm.propTypes = {
   onSubmit: PropTypes.func.isRequired,
-}
+};
+
 export default ContactForm;
